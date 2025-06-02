@@ -92,11 +92,6 @@ const kataKasar = [
                     participant: msg.key.participant || msg.participant
                   }               
             })
-            try {
-                await client.groupParticipantsUpdate(groupId, [sender], 'remove')
-            } catch (e) {
-                console.error('Gagal mengeluarkan member:', e)
-            }
         }
     })
  }
