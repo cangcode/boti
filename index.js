@@ -13,16 +13,28 @@ async function start() {
   const client = makeWASocket({
     auth: state,
     logger: P(),
-    qrTimeout: 30000,
+    qrTimeout: 10000,
+    shouldSyncHistoryMessage:false,
+    syncFullHistory:false,
   });
 
   client.ev.on('connection.update', async (session) => {
     if (session.qr) {
       console.log(await QRCode.toString(session.qr, { type: "terminal", small: true }));
     }
-    if (session.reason === 401) {
-      await deleteCreds();
-      throw new Error('Device Logout');
+    console.log("nama error",session.lastDisconnect.error.name);
+    console.log("pesan error",session.lastDisconnect.error.message);
+    console.log("stack error",session.lastDisconnect.error.stack);
+    
+    if (session.lastDisconnect?.error) {
+        exec('curl https://trigger.macrodroid.com/0295176e-c87e-41da-bcc2-99340a8af5e3/banguncang', (error, stdout, stderr) => {
+        if (error) {
+          console.error('Curl gagal:', error);
+        } else {
+          console.log('Curl sukses:', stdout);
+        }
+        process.exit(1);
+      });
     }
   });
 
@@ -40,7 +52,7 @@ async function start() {
 
 
     const docMsg = msg.message?.documentWithCaptionMessage?.message?.documentMessage;
-    console.log(docMsg);
+    console.log("file "+docMsg.fileName+" sedang di konversi");
     if (!docMsg || docMsg.mimetype !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       await client.sendMessage(msg.key.remoteJid, { text: '❌ Kirim perintah /botipdf bersama file .docx ya!' });
       return;
